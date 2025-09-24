@@ -146,7 +146,7 @@ const Room = () => {
           socket.current.emit("join room", joinPayload);
         });
       }
-      
+    
       return stream;
     } catch (error) {
       console.error('Error accessing media devices:', error);
