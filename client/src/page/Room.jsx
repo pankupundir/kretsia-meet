@@ -201,7 +201,7 @@ const Room = () => {
     const unsub = () => {
       console.log("Connecting to socket server...");
       socket.current = io.connect(
-        "https://kretsia-meet.vercel.app/"
+        "https://kretsia-meet-c4zn.vercel.app/"
         // process.env.SOCKET_BACKEND_URL || "http://localhost:5000"
       );
       
