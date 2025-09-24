@@ -1,49 +1,23 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, firestore } from "../firebase/config";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const getUser = async () => {
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          setUser(user);
-          setLoading(false);
-        }
-        if (!user) {
-          setUser(null);
-          setLoading(false);
-        }
-      });
-    };
-    return getUser();
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState(null);
 
-  const login = async () => {
+  const login = (userData) => {
     try {
-      const provider = new GoogleAuthProvider();
-      const { user } = await signInWithPopup(auth, provider);
-      await setDoc(
-        doc(firestore, "user", `${user?.uid}`),
-        {
-          name: user?.displayName,
-          email: user?.email,
-          photo: user?.photoURL,
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      // Generate a simple user ID
+      const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const user = {
+        uid: userId,
+        displayName: userData.name || "Anonymous",
+        email: userData.email || "",
+        photoURL: userData.photoURL || "https://parkridgevet.com.au/wp-content/uploads/2020/11/Profile-300x300.png"
+      };
+      
       setUser(user);
       return user;
     } catch (error) {
@@ -53,16 +27,24 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     console.log("Logout");
-    signOut(auth);
     setUser(null);
+    setRedirectUrl(null);
     return user;
   };
 
+  const setRedirect = (url) => {
+    setRedirectUrl(url);
+  };
+
+  const clearRedirect = () => {
+    setRedirectUrl(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {loading || children}
+    <AuthContext.Provider value={{ user, login, logout, loading, setLoading, redirectUrl, setRedirect, clearRedirect }}>
+      {children}
     </AuthContext.Provider>
   );
 };

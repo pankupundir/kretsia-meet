@@ -17,7 +17,14 @@ const PORT = process.env.PORT || 5000;
 const socketToRoom = {};
 
 io.on("connection", (socket) => {
+  console.log("New connection:", socket.id);
+  
   socket.on("join room", ({ roomID, user }) => {
+    console.log(`User ${socket.id} joining room ${roomID}`, user);
+    
+    // Join the socket.io room
+    socket.join(roomID);
+    
     if (users[roomID]) {
       users[roomID].push({ userId: socket.id, user });
     } else {
@@ -28,14 +35,27 @@ io.on("connection", (socket) => {
       (user) => user.userId !== socket.id
     );
 
-    // console.log(users);
+    console.log(`Room ${roomID} now has ${users[roomID].length} users:`, users[roomID]);
+    console.log(`Sending ${usersInThisRoom.length} existing users to ${socket.id}`);
+    
+    // Send existing users to the new user
     socket.emit("all users", usersInThisRoom);
+    
+    // Notify existing users about the new user (this will trigger peer connections)
+    if (usersInThisRoom.length > 0) {
+      console.log(`Notifying existing users about new user ${socket.id}`);
+      socket.to(roomID).emit("user joined", {
+        signal: null, // Signal will be sent separately
+        callerID: socket.id,
+        user: user,
+      });
+    }
   });
 
   // signal for offer
   socket.on("sending signal", (payload) => {
-    // console.log(payload);
-    io.to(payload.userToSignal).emit("user joined", {
+    console.log(`Signal from ${payload.callerID} to ${payload.userToSignal}`);
+    socket.to(payload.userToSignal).emit("user joined", {
       signal: payload.signal,
       callerID: payload.callerID,
       user: payload.user,
@@ -44,7 +64,8 @@ io.on("connection", (socket) => {
 
   // signal for answer
   socket.on("returning signal", (payload) => {
-    io.to(payload.callerID).emit("receiving returned signal", {
+    console.log(`Returning signal from ${socket.id} to ${payload.callerID}`);
+    socket.to(payload.callerID).emit("receiving returned signal", {
       signal: payload.signal,
       id: socket.id,
     });
@@ -57,13 +78,18 @@ io.on("connection", (socket) => {
 
   // disconnect
   socket.on("disconnect", () => {
+    console.log(`User ${socket.id} disconnected`);
     const roomID = socketToRoom[socket.id];
     let room = users[roomID];
     if (room) {
       room = room.filter((item) => item.userId !== socket.id);
       users[roomID] = room;
+      console.log(`Room ${roomID} now has ${room.length} users`);
+      
+      // Notify other users in the room
+      socket.to(roomID).emit("user left", socket.id);
     }
-    socket.broadcast.emit("user left", socket.id);
+    delete socketToRoom[socket.id];
   });
 });
 

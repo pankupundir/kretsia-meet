@@ -84,19 +84,7 @@ const Home = () => {
               bgColor="bg-blue"
             />
           </div>
-          <div>
-            <div className="p-3 md:p-4 md:rounded-xl rounded md:text-base text-sm md:mt-6 mt-2 text-white md:font-semibold text-center w-full bg-blue">
-              Made with love by
-              <a
-                href="https://github.com/theviralboy"
-                target={"_blank"}
-                rel="noreferrer"
-              >
-                {" "}
-                Sahil Verma
-              </a>
-            </div>
-          </div>
+ 
         </div>
         <div className="flex-grow md:h-screen md:border-l-2 border-lightGray p-3 md:p-4">
           <div className="relative md:h-52 w-full bg-slate-500 rounded md:rounded-2xl p-3">

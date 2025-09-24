@@ -11,6 +11,7 @@ import Home from "../page/Home";
 import Room from "../page/Room";
 import NotFound from "../page/NotFound";
 import NewRoom from "../page/NewRoom";
+import Login from "./Login";
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           {/* <Route path="/room/:roomID" element={<NewRoom />} /> */}
           <Route path="/room/:roomID" element={<Room />} />
           <Route path="*" element={<NotFound />} />
